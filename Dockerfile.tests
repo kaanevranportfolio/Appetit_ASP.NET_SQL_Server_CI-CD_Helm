@@ -1,0 +1,14 @@
+# Test Dockerfile - Comprehensive API Tests
+FROM mcr.microsoft.com/dotnet/sdk:8.0
+
+WORKDIR /app
+
+# Create a console app for our comprehensive tests
+RUN dotnet new console -n ApiTests
+WORKDIR /app/ApiTests
+
+# Replace the default program with our comprehensive test suite
+COPY WorkingApiTest.cs ./Program.cs
+
+# Run the comprehensive test suite
+CMD ["dotnet", "run"]

@@ -134,6 +134,9 @@ docker run --rm restaurant-api-tests
 🎉 All tests passed! Your Restaurant Menu API is working correctly.
 ```
 
+![Test Results](pngs/tests.png)
+
+
 ## 🎯 Proving Your Project Works
 
 ### Quick Verification (2 minutes)

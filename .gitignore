@@ -311,8 +311,8 @@ ASALocalRun/
 
 # Docker
 .dockerignore
-Dockerfile*
-docker-compose*.yml
+
+
 
 # OS generated files
 .DS_Store

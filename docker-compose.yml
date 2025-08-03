@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  restaurant-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=RestaurantMenuDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+    depends_on:
+      - sqlserver
+    networks:
+      - restaurant-network
+
+  restaurant-api-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Testing
+      - ConnectionStrings__DefaultConnection=Server=sqlserver-test;Database=RestaurantMenuTestDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+    depends_on:
+      - sqlserver-test
+    networks:
+      - restaurant-network
+    profiles:
+      - testing
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - restaurant-network
+
+  sqlserver-test:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Express
+    ports:
+      - "1434:1433"
+    volumes:
+      - sqlserver_test_data:/var/opt/mssql
+    networks:
+      - restaurant-network
+    profiles:
+      - testing
+
+volumes:
+  sqlserver_data:
+  sqlserver_test_data:
+
+networks:
+  restaurant-network:
+    driver: bridge
