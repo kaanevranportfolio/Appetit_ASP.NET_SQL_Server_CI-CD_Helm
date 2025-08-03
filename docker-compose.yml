@@ -1,29 +1,30 @@
-version: '3.8'
-
 services:
   restaurant-api:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "${API_PORT:-8080}:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=RestaurantMenuDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=RestaurantMenuDB;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=true;
     depends_on:
-      - sqlserver
+      sqlserver:
+        condition: service_healthy
     networks:
       - restaurant-network
+    restart: unless-stopped
 
   restaurant-api-tests:
     build:
       context: .
       dockerfile: Dockerfile.tests
     environment:
-      - ASPNETCORE_ENVIRONMENT=Testing
-      - ConnectionStrings__DefaultConnection=Server=sqlserver-test;Database=RestaurantMenuTestDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_TEST_ENVIRONMENT:-Testing}
+      - ConnectionStrings__DefaultConnection=Server=sqlserver-test;Database=RestaurantMenuTestDB;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=true;
     depends_on:
-      - sqlserver-test
+      sqlserver-test:
+        condition: service_healthy
     networks:
       - restaurant-network
     profiles:
@@ -33,29 +34,54 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd
+      - SA_PASSWORD=${DB_PASSWORD}
       - MSSQL_PID=Express
     ports:
-      - "1433:1433"
+      - "${DB_PORT:-1433}:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
     networks:
       - restaurant-network
+    deploy:
+      resources:
+        limits:
+          memory: ${DB_MEMORY_LIMIT:-2G}
+        reservations:
+          memory: ${DB_MEMORY_RESERVATION:-1G}
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${DB_PASSWORD}' -Q 'SELECT 1' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
 
   sqlserver-test:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd
+      - SA_PASSWORD=${DB_PASSWORD}
       - MSSQL_PID=Express
     ports:
-      - "1434:1433"
+      - "${TEST_DB_PORT:-1434}:1433"
     volumes:
       - sqlserver_test_data:/var/opt/mssql
     networks:
       - restaurant-network
     profiles:
       - testing
+    deploy:
+      resources:
+        limits:
+          memory: ${DB_MEMORY_LIMIT:-2G}
+        reservations:
+          memory: ${DB_MEMORY_RESERVATION:-1G}
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P '${DB_PASSWORD}' -Q 'SELECT 1' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
 
 volumes:
   sqlserver_data:
