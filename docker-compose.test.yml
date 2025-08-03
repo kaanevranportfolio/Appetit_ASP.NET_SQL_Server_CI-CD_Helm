@@ -1,0 +1,42 @@
+services:
+  # The test runner service
+  restaurant-api-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Testing
+      - ConnectionStrings__DefaultConnection=Server=sqlserver-test;Database=RestaurantMenuTestDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true
+    depends_on:
+      sqlserver-test:
+        condition: service_healthy # Let's use the health check!
+    networks:
+      - restaurant-test-network
+    volumes:
+      - ./TestResults:/app/TestResults
+
+  # The test database service
+  sqlserver-test:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Express
+    ports:
+      - "1434:1433"
+    networks:
+      - restaurant-test-network
+    healthcheck:
+      # This port check is reliable and doesn't need sqlcmd
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/1433' && echo 'SQL Server is ready' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  sqlserver_test_data:
+
+networks:
+  restaurant-test-network:
+    driver: bridge

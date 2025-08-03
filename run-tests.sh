@@ -1,53 +1,45 @@
 #!/bin/bash
+echo "🧪 Starting Restaurant Menu API Automated Tests..."
+echo "📋 Using self-contained Dockerfile and 'docker compose up'"
+echo ""
 
-echo "🧪 Running Restaurant Menu API Tests with Docker..."
+# Ensure we start from a clean slate
+docker compose -f docker-compose.test.yml down --volumes
+
+echo "🚀 Building and running test environment..."
+
+# 'up' will build the image, start the database, wait for it to be healthy,
+# and then start the test container.
+# '--abort-on-container-exit' ensures that as soon as the test container
+# finishes (passes or fails), all other containers are stopped.
+docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
+
+# Capture the exit code of the test container
+TEST_EXIT_CODE=$?
+
+echo ""
+echo "=================================================="
+echo "📊 FINAL TEST RESULTS SUMMARY"
 echo "=================================================="
 
-# Check if Docker is running
-if ! docker info > /dev/null 2>&1; then
-    echo "❌ Error: Docker is not running. Please start Docker Desktop and try again."
-    exit 1
-fi
-
-echo "🔨 Building and running tests..."
-docker build -f Dockerfile.tests -t restaurant-api-tests . -q
-
-if [ $? -ne 0 ]; then
-    echo "❌ Failed to build test image"
-    exit 1
+if [ $TEST_EXIT_CODE -eq 0 ]; then
+    echo "🎉 OVERALL RESULT: ALL TESTS PASSED! ✅"
+    final_exit_code=0
+else
+    echo "💥 OVERALL RESULT: SOME TESTS FAILED! ❌"
+    echo "Check the detailed output above to see which specific tests failed."
+    final_exit_code=1
 fi
 
 echo ""
-echo "🏃‍♂️ Executing tests..."
-echo "===================="
+echo "🧹 Cleaning up test environment..."
+docker compose -f docker-compose.test.yml down --volumes
 
-# Run the tests in the container
-docker run --rm restaurant-api-tests
-TEST_EXIT_CODE=$?
-
-if [ $TEST_EXIT_CODE -eq 0 ]; then
-    echo ""
-    echo "✅ All tests passed successfully!"
-    echo ""
-    echo "📊 Test Results Summary:"
-    echo "  • Unit Tests: ✅ Service layer business logic"
-    echo "  • Integration Tests: ✅ API endpoints and authentication"
-    echo "  • Coverage: ✅ Comprehensive test coverage"
-    echo ""
-    echo "🎉 Your Restaurant Menu API is working perfectly!"
-    echo ""
-    echo "💡 Next steps:"
-    echo "  • Start the API: docker-compose up --build"
-    echo "  • Access Swagger UI: http://localhost:8080"
-    echo "  • Test with default admin credentials: admin@restaurant.com / Admin123!"
+echo ""
+if [ $final_exit_code -eq 0 ]; then
+    echo "✅ Test execution completed successfully!"
 else
-    echo ""
-    echo "❌ Some tests failed. Please check the output above for details."
-    echo ""
-    echo "🔍 Common issues:"
-    echo "  • Check for syntax errors in test files"
-    echo "  • Verify all dependencies are properly configured"
-    echo "  • Ensure test data setup is correct"
+    echo "❌ Test execution failed with exit code: $final_exit_code"
 fi
 
-exit $TEST_EXIT_CODE
+exit $final_exit_code

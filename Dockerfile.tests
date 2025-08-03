@@ -1,14 +1,20 @@
-# Test Dockerfile - Comprehensive API Tests
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 
 WORKDIR /app
 
-# Create a console app for our comprehensive tests
-RUN dotnet new console -n ApiTests
-WORKDIR /app/ApiTests
+# Copy project file and restore dependencies first for caching
+COPY *.csproj ./
+RUN dotnet restore
 
-# Replace the default program with our comprehensive test suite
-COPY WorkingApiTest.cs ./Program.cs
+# Copy the rest of the source code
+COPY . ./
 
-# Run the comprehensive test suite
-CMD ["dotnet", "run"]
+# Build the project in Release configuration
+RUN dotnet build --configuration Release --no-restore
+
+# Create a directory for test results
+RUN mkdir -p /app/TestResults
+
+# The CMD instruction defines the command to run when the container starts.
+# We use the JSON array format, which is the most reliable way to pass arguments.
+CMD ["dotnet", "test", "--no-build", "--configuration", "Release", "--verbosity", "detailed", "--logger", "trx;LogFileName=test-results.trx", "--results-directory", "/app/TestResults"]

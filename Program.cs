@@ -178,6 +178,9 @@ using (var scope = app.Services.CreateScope())
 
 app.Run();
 
+
+
+
 // Helper methods for seeding data
 static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
 {
@@ -250,3 +253,6 @@ static async Task SeedMenuItemsAsync(ApplicationDbContext context)
         await context.SaveChangesAsync();
     }
 }
+
+
+public partial class Program { }
