@@ -364,7 +364,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 For support and questions:
 - Create an issue in the repository
-- Contact: support@restaurant-api.com
+- Contact: kaanevran@gmail.com
 
 ---
 
