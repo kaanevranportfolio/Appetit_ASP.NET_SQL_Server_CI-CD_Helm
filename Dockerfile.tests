@@ -2,19 +2,31 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0
 
 WORKDIR /app
 
-# Copy project file and restore dependencies first for caching
-COPY *.csproj ./
+# Copy solution file
+COPY RestaurantMenuAPI.sln ./
+
+# Copy project files and restore dependencies
+COPY src/RestaurantMenuAPI/RestaurantMenuAPI.csproj ./src/RestaurantMenuAPI/
+COPY tests/RestaurantMenuAPI.Tests/RestaurantMenuAPI.Tests.csproj ./tests/RestaurantMenuAPI.Tests/
+
 RUN dotnet restore
 
 # Copy the rest of the source code
-COPY . ./
+COPY src/ ./src/
+COPY tests/ ./tests/
 
-# Build the project in Release configuration
+# Build the projects in Release configuration
 RUN dotnet build --configuration Release --no-restore
 
 # Create a directory for test results
 RUN mkdir -p /app/TestResults
 
-# The CMD instruction defines the command to run when the container starts.
-# We use the JSON array format, which is the most reliable way to pass arguments.
-CMD ["dotnet", "test", "--no-build", "--configuration", "Release", "--verbosity", "detailed", "--logger", "trx;LogFileName=test-results.trx", "--results-directory", "/app/TestResults"]
+# Keep the container alive for exec commands if requested
+ARG KEEP_ALIVE=false
+ENV KEEP_ALIVE=$KEEP_ALIVE
+
+# Entrypoint script
+COPY docker-test-entrypoint.sh /app/docker-test-entrypoint.sh
+RUN chmod +x /app/docker-test-entrypoint.sh
+
+ENTRYPOINT ["/app/docker-test-entrypoint.sh"]

@@ -5,7 +5,7 @@ using Xunit;
 using FluentAssertions;
 using RestaurantMenuAPI.Data;
 
-namespace APPETIT_ASP.NET_SQL_SERVER.Tests;
+namespace RestaurantMenuAPI.Tests;
 
 public class DatabaseTests : TestBase
 {

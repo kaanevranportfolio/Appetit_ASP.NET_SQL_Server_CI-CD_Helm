@@ -1,28 +1,32 @@
-# Restaurant Menu & Reservation API
+# Restaurant Menu API
 
-A comprehensive ASP.NET Core 8.0 Web API for restaurant management with menu CRUD operations, reservation system, and user authentication.
+A professional ASP.NET Core Web API for restaurant menu management with JWT authentication and SQL Server database.
 
-## 🚀 Features
+## Project Structure
 
-- **Menu Management**: Full CRUD operations for menu items and categories
-- **Reservation System**: Table booking with scheduling and availability tracking
-- **User Authentication**: JWT-based authentication with role-based authorization
-- **Role-Based Access**: Three user roles (Guest, Staff, Admin) with different permissions
-- **Booking Limits**: Configurable reservation limits per user
-- **Menu Availability**: Track available quantities for menu items
-- **Containerized**: Fully containerized with Docker and Docker Compose
-- **API Documentation**: Interactive Swagger/OpenAPI documentation
-- **Comprehensive Testing**: Unit tests and integration tests with high coverage
-
-## 🏗️ Architecture
-
-- **Framework**: ASP.NET Core 8.0
-- **Database**: SQL Server with Entity Framework Core
-- **Authentication**: JWT Bearer tokens
-- **Authorization**: Role-based (Guest, Staff, Admin)
-- **Containerization**: Docker & Docker Compose
-- **Testing**: xUnit with FluentAssertions and Moq
-- **Documentation**: Swagger/OpenAPI
+```
+RestaurantMenuAPI/
+├── src/
+│   └── RestaurantMenuAPI/           # Main API project
+│       ├── Controllers/             # API controllers
+│       ├── Data/                    # Database context and configurations
+│       ├── DTOs/                    # Data Transfer Objects
+│       ├── Models/                  # Domain models
+│       ├── Services/                # Business logic services
+│       ├── Program.cs               # Application entry point
+│       └── RestaurantMenuAPI.csproj # Main project file
+├── tests/
+│   └── RestaurantMenuAPI.Tests/     # Test project
+│       ├── Integration/             # Integration tests
+│       ├── Unit/                    # Unit tests
+│       └── RestaurantMenuAPI.Tests.csproj # Test project file
+├── docker-compose.yml               # Development environment
+├── docker-compose.test.yml          # Test environment
+├── Dockerfile                       # Production Docker image
+├── Dockerfile.tests                 # Test Docker image
+├── RestaurantMenuAPI.sln            # Solution file
+└── run-tests.sh                     # Test execution script
+```
 
 ## 📋 Prerequisites
 
@@ -68,16 +72,11 @@ A comprehensive ASP.NET Core 8.0 Web API for restaurant management with menu CRU
 
 This project includes a comprehensive test suite that validates all core functionality of the Restaurant Menu API.
 
-### Test Coverage
+### Test Isolation & Database Seeding
 
-The test suite validates:
-
-- ✅ **Docker Environment**: Container execution and .NET runtime
-- ✅ **JSON Serialization**: Data transfer object handling
-- ✅ **Business Logic**: Reservation validation, menu management
-- ✅ **Authentication Logic**: JWT token validation and user roles
-- ✅ **Configuration**: Database connections and security settings
-- ✅ **Price Calculations**: Order totals and menu pricing
+- **Each test runs in a clean, seeded database.** The test infrastructure resets and reseeds the database before every test, ensuring no test state leaks between tests.
+- **Seeding logic** is shared with the main application and includes roles, admin user, and menu items.
+- **TestBase** uses xUnit's `IAsyncLifetime` to guarantee per-test isolation.
 
 ### Running Tests
 
@@ -88,18 +87,25 @@ chmod +x run-tests.sh
 ./run-tests.sh
 ```
 
-**Manual Docker Commands:**
+- Tests are executed one by one in a single, persistent Docker container for speed and reliability.
+- The test container is kept alive for the duration of the test run, and the database is reset and reseeded before each test.
+- Clear pass/fail output for each test is shown in the terminal.
+
+#### Manual Docker Commands
 ```bash
-# Build and run the test suite
+# Build the test image
 docker build -f Dockerfile.tests -t restaurant-api-tests .
-docker run --rm restaurant-api-tests
+# Start the test database and test container (keep-alive mode)
+docker compose -f docker-compose.test.yml up -d --build
+# Run a specific test (example)
+docker exec <test-container-id> dotnet test tests/RestaurantMenuAPI.Tests/RestaurantMenuAPI.Tests.csproj --filter "FullyQualifiedName=YourTestName"
 ```
 
 ### Test Features
 
 - **Comprehensive Coverage**: Tests all major API components
 - **Docker Integration**: Runs in containerized environment
-- **Fast Execution**: Complete test suite runs in under 30 seconds
+- **Per-Test Isolation**: Database is reset and seeded before every test
 - **Clear Output**: Green checkmarks and detailed test results
 - **Production Ready**: Validates real-world functionality
 
@@ -109,26 +115,46 @@ docker run --rm restaurant-api-tests
 🧪 Restaurant Menu API Integration Tests
 ==========================================
 
-🔍 Test 1: API Health Check
-   ✅ PASS - Docker test environment working
+🔹 Basic Tests
+   ✅ Simple_Math_Test_Should_Pass
+   ✅ String_Test_Should_Pass
 
-🔍 Test 2: JSON Serialization Test
-   ✅ PASS - JSON serialization working
+🔹 Data Seeding Tests
+   ✅ Database_Should_BeSeeded_WithRoles
+   ✅ Database_Should_BeSeeded_WithAdminUser
+   ✅ Database_Should_BeSeeded_WithMenuItems
+   ✅ Seeded_MenuItems_Should_HaveCorrectData
 
-🔍 Test 3: Business Logic Validation
-   ✅ PASS - Business logic validation working
+🔹 Database Tests
+   ✅ Database_Context_Should_BeConfigured
+   ✅ Database_Should_BeAccessible
+   ✅ Database_Should_HaveCorrectTables
 
-🔍 Test 4: Authentication Logic Test
-   ✅ PASS - Authentication logic working
+🔹 Identity Tests
+   ✅ Identity_Services_Should_BeRegistered
+   ✅ Password_Policy_Should_BeConfigured
+   ✅ User_Options_Should_BeConfigured
 
-🔍 Test 5: Configuration Validation
-   ✅ PASS - Configuration validation working
+🔹 API Startup Tests
+   ✅ Api_Should_StartSuccessfully
+   ✅ Api_Should_HandleInvalidRoutes
+   ✅ Api_Should_ReturnCorrectContentType
 
-🔍 Test 6: Price Calculation Test
-   ✅ PASS - Price calculation working (Total: $36.95)
+🔹 Swagger Configuration Tests
+   ✅ Swagger_Json_Should_BeAccessible
+   ✅ Swagger_Should_ContainApiInformation
+   ✅ Swagger_Should_HaveBearerSecurity
+
+🔹 JWT Configuration Tests
+   ✅ JWT_Configuration_Should_BeValid
+   ✅ JWT_Bearer_Options_Should_BeConfigured
+
+🔹 CORS Configuration Tests
+   ✅ CORS_Should_BeConfigured
+   ✅ CORS_Preflight_Should_BeHandled
 
 📊 Test Results Summary:
-   Passed: 6/6 tests
+   Passed: 22/22 tests
    Success Rate: 100%
 
 🎉 All tests passed! Your Restaurant Menu API is working correctly.

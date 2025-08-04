@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace APPETIT_ASP.NET_SQL_SERVER.Tests;
+namespace RestaurantMenuAPI.Tests;
 
 public class BasicTest
 {

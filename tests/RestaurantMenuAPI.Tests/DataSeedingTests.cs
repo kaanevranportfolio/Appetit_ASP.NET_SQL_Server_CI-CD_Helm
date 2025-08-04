@@ -7,7 +7,7 @@ using FluentAssertions;
 using RestaurantMenuAPI.Data;
 using RestaurantMenuAPI.Models;
 
-namespace APPETIT_ASP.NET_SQL_SERVER.Tests;
+namespace RestaurantMenuAPI.Tests;
 
 public class DataSeedingTests : TestBase
 {

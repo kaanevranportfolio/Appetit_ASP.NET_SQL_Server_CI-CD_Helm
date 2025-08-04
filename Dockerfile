@@ -2,17 +2,20 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
+# Copy solution file
+COPY ["RestaurantMenuAPI.sln", "./"]
+
 # Copy project files
-COPY ["RestaurantMenuAPI.csproj", "./"]
-RUN dotnet restore "RestaurantMenuAPI.csproj"
+COPY ["src/RestaurantMenuAPI/RestaurantMenuAPI.csproj", "src/RestaurantMenuAPI/"]
+RUN dotnet restore "src/RestaurantMenuAPI/RestaurantMenuAPI.csproj"
 
 # Copy source code
-COPY . .
-RUN dotnet build "RestaurantMenuAPI.csproj" -c Release -o /app/build
+COPY ["src/RestaurantMenuAPI/", "src/RestaurantMenuAPI/"]
+RUN dotnet build "src/RestaurantMenuAPI/RestaurantMenuAPI.csproj" -c Release -o /app/build
 
 # Publish the application
 FROM build AS publish
-RUN dotnet publish "RestaurantMenuAPI.csproj" -c Release -o /app/publish
+RUN dotnet publish "src/RestaurantMenuAPI/RestaurantMenuAPI.csproj" -c Release -o /app/publish
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime

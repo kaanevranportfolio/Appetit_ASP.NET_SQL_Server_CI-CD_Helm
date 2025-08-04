@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Identity;
 using Xunit;
+using System.Threading.Tasks;
+using RestaurantMenuAPI.Models;
 
-namespace APPETIT_ASP.NET_SQL_SERVER.Tests;
+namespace RestaurantMenuAPI.Tests;
 
-public abstract class TestBase : IClassFixture<WebApplicationFactory<Program>>
+public abstract class TestBase : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
 {
     protected readonly WebApplicationFactory<Program> Factory;
     protected readonly HttpClient Client;
@@ -28,9 +31,26 @@ public abstract class TestBase : IClassFixture<WebApplicationFactory<Program>>
                 });
             });
         });
-        
+
         Client = Factory.CreateClient();
     }
 
     protected IServiceScope CreateScope() => Factory.Services.CreateScope();
+
+    // Reset the database before each test
+    public async Task InitializeAsync()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<RestaurantMenuAPI.Data.ApplicationDbContext>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<RestaurantMenuAPI.Models.ApplicationUser>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        await db.Database.EnsureDeletedAsync();
+        await db.Database.EnsureCreatedAsync();
+        // Call seeding methods from Program
+        await Program.SeedRolesAsync(roleManager);
+        await Program.SeedAdminUserAsync(userManager);
+        await Program.SeedMenuItemsAsync(db);
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 }

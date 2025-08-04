@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using Xunit;
 using FluentAssertions;
 
-namespace APPETIT_ASP.NET_SQL_SERVER.Tests;
+namespace RestaurantMenuAPI.Tests;
 
 public class JwtConfigurationTests : TestBase
 {

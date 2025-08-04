@@ -1,38 +1,74 @@
 #!/bin/bash
+
 echo "🧪 Starting Restaurant Menu API Automated Tests..."
-echo "📋 Using self-contained Dockerfile and 'docker compose up'"
+echo "📋 Using self-contained test project and 'docker compose up'"
 echo ""
 
 # Ensure we start from a clean slate
 docker compose -f docker-compose.test.yml down --volumes
 
-echo "🚀 Building and running test environment..."
+echo "🚀 Building and starting test environment..."
+docker compose -f docker-compose.test.yml up -d --build
 
-# 'up' will build the image, start the database, wait for it to be healthy,
-# and then start the test container.
-# '--abort-on-container-exit' ensures that as soon as the test container
-# finishes (passes or fails), all other containers are stopped.
-docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
+# Wait for the test service to be healthy (optional: implement health check logic if needed)
+sleep 5
 
-# Capture the exit code of the test container
-TEST_EXIT_CODE=$?
-
-echo ""
-echo "=================================================="
-echo "📊 FINAL TEST RESULTS SUMMARY"
-echo "=================================================="
-
-if [ $TEST_EXIT_CODE -eq 0 ]; then
-    echo "🎉 OVERALL RESULT: ALL TESTS PASSED! ✅"
-    final_exit_code=0
-else
-    echo "💥 OVERALL RESULT: SOME TESTS FAILED! ❌"
-    echo "Check the detailed output above to see which specific tests failed."
-    final_exit_code=1
+# List all test cases in the test project using the running container
+CONTAINER_ID=$(docker compose -f docker-compose.test.yml ps -q restaurant-api-tests)
+if [ -z "$CONTAINER_ID" ]; then
+    echo "❌ Test container not found!"
+    docker compose -f docker-compose.test.yml down --volumes
+    exit 1
 fi
 
-echo ""
-echo "🧹 Cleaning up test environment..."
+TESTS=$(docker exec $CONTAINER_ID dotnet test tests/RestaurantMenuAPI.Tests/RestaurantMenuAPI.Tests.csproj --configuration Release --list-tests --no-build --logger "console;verbosity=detailed" | grep -E '^[ ]{4,}[^ ]' | awk '{$1=$1};1')
+
+if [ -z "$TESTS" ]; then
+    echo "❌ No tests found!"
+    docker compose -f docker-compose.test.yml down --volumes
+    exit 1
+fi
+
+echo "=================================================="
+echo "🧪 Running each test individually in the same container..."
+echo "=================================================="
+
+PASS_COUNT=0
+FAIL_COUNT=0
+FAILED_TESTS=()
+
+for TEST in $TESTS; do
+    echo "\n▶️ Running: $TEST"
+    docker exec $CONTAINER_ID dotnet test tests/RestaurantMenuAPI.Tests/RestaurantMenuAPI.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName=$TEST"
+    EXIT_CODE=$?
+    if [ $EXIT_CODE -eq 0 ]; then
+        echo "✅ $TEST PASSED"
+        PASS_COUNT=$((PASS_COUNT+1))
+    else
+        echo "❌ $TEST FAILED"
+        FAIL_COUNT=$((FAIL_COUNT+1))
+        FAILED_TESTS+=("$TEST")
+    fi
+    echo "----------------------------------------"
+done
+
+echo "\n=================================================="
+echo "📊 FINAL TEST RESULTS SUMMARY"
+echo "=================================================="
+echo "✅ PASSED: $PASS_COUNT"
+echo "❌ FAILED: $FAIL_COUNT"
+if [ $FAIL_COUNT -ne 0 ]; then
+    echo "\nFailed tests:"
+    for T in "${FAILED_TESTS[@]}"; do
+        echo "  - $T"
+    done
+    final_exit_code=1
+else
+    echo "🎉 OVERALL RESULT: ALL TESTS PASSED! ✅"
+    final_exit_code=0
+fi
+
+echo "\n🧹 Cleaning up test environment..."
 docker compose -f docker-compose.test.yml down --volumes
 
 echo ""
@@ -41,5 +77,4 @@ if [ $final_exit_code -eq 0 ]; then
 else
     echo "❌ Test execution failed with exit code: $final_exit_code"
 fi
-
 exit $final_exit_code

@@ -5,7 +5,7 @@ using Xunit;
 using FluentAssertions;
 using RestaurantMenuAPI.Models;
 
-namespace APPETIT_ASP.NET_SQL_SERVER.Tests;
+namespace RestaurantMenuAPI.Tests;
 
 public class IdentityTests : TestBase
 {

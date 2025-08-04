@@ -128,7 +128,7 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Testing")
 {
     app.UseSwagger();
     app.UseSwaggerUI(options =>
@@ -160,13 +160,13 @@ using (var scope = app.Services.CreateScope())
         await context.Database.EnsureCreatedAsync();
 
         // Seed roles
-        await SeedRolesAsync(roleManager);
+        await Program.SeedRolesAsync(roleManager);
 
         // Seed admin user
-        await SeedAdminUserAsync(userManager);
+        await Program.SeedAdminUserAsync(userManager);
 
         // Seed sample menu items
-        await SeedMenuItemsAsync(context);
+        await Program.SeedMenuItemsAsync(context);
 
         Log.Information("Database initialized successfully");
     }
@@ -178,81 +178,76 @@ using (var scope = app.Services.CreateScope())
 
 app.Run();
 
-
-
-
-// Helper methods for seeding data
-static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
-{
-    string[] roles = { "Guest", "Staff", "Admin" };
-
-    foreach (var role in roles)
+public partial class Program {
+    public static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
     {
-        if (!await roleManager.RoleExistsAsync(role))
+        string[] roles = { "Guest", "Staff", "Admin" };
+
+        foreach (var role in roles)
         {
-            await roleManager.CreateAsync(new IdentityRole(role));
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                await roleManager.CreateAsync(new IdentityRole(role));
+            }
+        }
+    }
+
+    public static async Task SeedAdminUserAsync(UserManager<ApplicationUser> userManager)
+    {
+        var adminEmail = "admin@restaurant.com";
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+        if (adminUser == null)
+        {
+            adminUser = new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                FirstName = "System",
+                LastName = "Administrator",
+                EmailConfirmed = true
+            };
+
+            var result = await userManager.CreateAsync(adminUser, "Admin123!");
+            
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+            }
+        }
+    }
+
+    public static async Task SeedMenuItemsAsync(ApplicationDbContext context)
+    {
+        if (!context.MenuItems.Any())
+        {
+            var menuItems = new List<MenuItem>
+            {
+                // Appetizers
+                new MenuItem { Name = "Caesar Salad", Description = "Fresh romaine lettuce with Caesar dressing, croutons, and parmesan cheese", Price = 12.99m, CategoryId = 1, IsAvailable = true },
+                new MenuItem { Name = "Bruschetta", Description = "Grilled bread topped with fresh tomatoes, basil, and mozzarella", Price = 8.99m, CategoryId = 1, IsAvailable = true },
+                new MenuItem { Name = "Buffalo Wings", Description = "Spicy chicken wings served with blue cheese dip", Price = 14.99m, CategoryId = 1, IsAvailable = true, AvailableQuantity = 50 },
+
+                // Main Courses
+                new MenuItem { Name = "Grilled Salmon", Description = "Fresh Atlantic salmon grilled to perfection with lemon butter sauce", Price = 24.99m, CategoryId = 2, IsAvailable = true, AvailableQuantity = 20 },
+                new MenuItem { Name = "Ribeye Steak", Description = "12oz prime ribeye steak cooked to your preference", Price = 32.99m, CategoryId = 2, IsAvailable = true, AvailableQuantity = 15 },
+                new MenuItem { Name = "Chicken Alfredo", Description = "Grilled chicken breast over fettuccine pasta with creamy alfredo sauce", Price = 18.99m, CategoryId = 2, IsAvailable = true },
+                new MenuItem { Name = "Vegetarian Pizza", Description = "Wood-fired pizza with fresh vegetables and mozzarella cheese", Price = 16.99m, CategoryId = 2, IsAvailable = true },
+
+                // Desserts
+                new MenuItem { Name = "Chocolate Lava Cake", Description = "Warm chocolate cake with molten center, served with vanilla ice cream", Price = 8.99m, CategoryId = 3, IsAvailable = true },
+                new MenuItem { Name = "Tiramisu", Description = "Classic Italian dessert with coffee-soaked ladyfingers and mascarpone", Price = 7.99m, CategoryId = 3, IsAvailable = true },
+                new MenuItem { Name = "Cheesecake", Description = "New York style cheesecake with berry compote", Price = 6.99m, CategoryId = 3, IsAvailable = true },
+
+                // Beverages
+                new MenuItem { Name = "House Wine (Glass)", Description = "Red or white wine from our selection", Price = 8.99m, CategoryId = 4, IsAvailable = true },
+                new MenuItem { Name = "Craft Beer", Description = "Local craft beer on tap", Price = 5.99m, CategoryId = 4, IsAvailable = true },
+                new MenuItem { Name = "Fresh Juice", Description = "Freshly squeezed orange, apple, or cranberry juice", Price = 4.99m, CategoryId = 4, IsAvailable = true },
+                new MenuItem { Name = "Espresso", Description = "Rich Italian espresso", Price = 3.99m, CategoryId = 4, IsAvailable = true }
+            };
+
+            context.MenuItems.AddRange(menuItems);
+            await context.SaveChangesAsync();
         }
     }
 }
-
-static async Task SeedAdminUserAsync(UserManager<ApplicationUser> userManager)
-{
-    var adminEmail = "admin@restaurant.com";
-    var adminUser = await userManager.FindByEmailAsync(adminEmail);
-
-    if (adminUser == null)
-    {
-        adminUser = new ApplicationUser
-        {
-            UserName = adminEmail,
-            Email = adminEmail,
-            FirstName = "System",
-            LastName = "Administrator",
-            EmailConfirmed = true
-        };
-
-        var result = await userManager.CreateAsync(adminUser, "Admin123!");
-        
-        if (result.Succeeded)
-        {
-            await userManager.AddToRoleAsync(adminUser, "Admin");
-        }
-    }
-}
-
-static async Task SeedMenuItemsAsync(ApplicationDbContext context)
-{
-    if (!context.MenuItems.Any())
-    {
-        var menuItems = new List<MenuItem>
-        {
-            // Appetizers
-            new MenuItem { Name = "Caesar Salad", Description = "Fresh romaine lettuce with Caesar dressing, croutons, and parmesan cheese", Price = 12.99m, CategoryId = 1, IsAvailable = true },
-            new MenuItem { Name = "Bruschetta", Description = "Grilled bread topped with fresh tomatoes, basil, and mozzarella", Price = 8.99m, CategoryId = 1, IsAvailable = true },
-            new MenuItem { Name = "Buffalo Wings", Description = "Spicy chicken wings served with blue cheese dip", Price = 14.99m, CategoryId = 1, IsAvailable = true, AvailableQuantity = 50 },
-
-            // Main Courses
-            new MenuItem { Name = "Grilled Salmon", Description = "Fresh Atlantic salmon grilled to perfection with lemon butter sauce", Price = 24.99m, CategoryId = 2, IsAvailable = true, AvailableQuantity = 20 },
-            new MenuItem { Name = "Ribeye Steak", Description = "12oz prime ribeye steak cooked to your preference", Price = 32.99m, CategoryId = 2, IsAvailable = true, AvailableQuantity = 15 },
-            new MenuItem { Name = "Chicken Alfredo", Description = "Grilled chicken breast over fettuccine pasta with creamy alfredo sauce", Price = 18.99m, CategoryId = 2, IsAvailable = true },
-            new MenuItem { Name = "Vegetarian Pizza", Description = "Wood-fired pizza with fresh vegetables and mozzarella cheese", Price = 16.99m, CategoryId = 2, IsAvailable = true },
-
-            // Desserts
-            new MenuItem { Name = "Chocolate Lava Cake", Description = "Warm chocolate cake with molten center, served with vanilla ice cream", Price = 8.99m, CategoryId = 3, IsAvailable = true },
-            new MenuItem { Name = "Tiramisu", Description = "Classic Italian dessert with coffee-soaked ladyfingers and mascarpone", Price = 7.99m, CategoryId = 3, IsAvailable = true },
-            new MenuItem { Name = "Cheesecake", Description = "New York style cheesecake with berry compote", Price = 6.99m, CategoryId = 3, IsAvailable = true },
-
-            // Beverages
-            new MenuItem { Name = "House Wine (Glass)", Description = "Red or white wine from our selection", Price = 8.99m, CategoryId = 4, IsAvailable = true },
-            new MenuItem { Name = "Craft Beer", Description = "Local craft beer on tap", Price = 5.99m, CategoryId = 4, IsAvailable = true },
-            new MenuItem { Name = "Fresh Juice", Description = "Freshly squeezed orange, apple, or cranberry juice", Price = 4.99m, CategoryId = 4, IsAvailable = true },
-            new MenuItem { Name = "Espresso", Description = "Rich Italian espresso", Price = 3.99m, CategoryId = 4, IsAvailable = true }
-        };
-
-        context.MenuItems.AddRange(menuItems);
-        await context.SaveChangesAsync();
-    }
-}
-
-
-public partial class Program { }

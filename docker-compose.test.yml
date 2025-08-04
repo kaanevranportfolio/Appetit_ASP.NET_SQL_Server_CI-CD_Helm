@@ -7,6 +7,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Testing
       - ConnectionStrings__DefaultConnection=Server=sqlserver-test;Database=RestaurantMenuTestDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true
+      - KEEP_ALIVE=true
     depends_on:
       sqlserver-test:
         condition: service_healthy # Let's use the health check!

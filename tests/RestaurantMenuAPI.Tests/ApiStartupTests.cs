@@ -3,7 +3,7 @@ using System.Net;
 using Xunit;
 using FluentAssertions;
 
-namespace APPETIT_ASP.NET_SQL_SERVER.Tests;
+namespace RestaurantMenuAPI.Tests;
 
 public class ApiStartupTests : TestBase
 {
