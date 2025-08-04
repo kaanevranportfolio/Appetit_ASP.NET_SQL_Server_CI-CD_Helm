@@ -36,7 +36,6 @@ RestaurantMenuAPI/
 
 ## 🚀 Quick Start
 
-### Using Docker (Recommended)
 
 1. **Clone the repository**
    ```bash
@@ -52,6 +51,19 @@ RestaurantMenuAPI/
 3. **Access the API**
    - API: http://localhost:8080
    - Swagger UI: http://localhost:8080/swagger
+
+### Environment Configuration
+
+Before running the application, copy the example environment file and fill in your own secrets:
+
+```bash
+cp .env.example .env
+# Then edit .env and set your database password, JWT secret, etc.
+```
+
+**Never commit your .env file to version control.**
+
+The application and Docker Compose will automatically use variables from your .env file for sensitive configuration (database credentials, JWT secret, etc.).
 
 ### Local Development
 

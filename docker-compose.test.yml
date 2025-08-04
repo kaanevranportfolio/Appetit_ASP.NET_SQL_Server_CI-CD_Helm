@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfiles/Dockerfile.backend.tests
     environment:
       - ASPNETCORE_ENVIRONMENT=Testing
-      - ConnectionStrings__DefaultConnection=Server=sqlserver-test;Database=RestaurantMenuTestDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true
+      - ConnectionStrings__DefaultConnection=Server=sqlserver-test;Database=${DB_NAME}_Test;User Id=${DB_USER};Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true
       - KEEP_ALIVE=true
     depends_on:
       sqlserver-test:
@@ -21,7 +21,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd
+      - SA_PASSWORD=${MSSQL_SA_PASSWORD}
       - MSSQL_PID=Express
     ports:
       - "1434:1433"

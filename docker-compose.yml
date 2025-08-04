@@ -1,38 +1,36 @@
-
 services:
   restaurant-api:
     build:
       context: .
       dockerfile: Dockerfiles/Dockerfile.backend
+      # If your Dockerfile needs .env, ensure it's in the build context (default for Compose)
     ports:
       - "8080:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=RestaurantMenuDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__DefaultConnection=Server=${DB_HOST};Database=${DB_NAME};User Id=${DB_USER};Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true;
     depends_on:
       - sqlserver
     networks:
       - restaurant-network
-
   restaurant-api-tests:
     build:
       context: .
       dockerfile: Dockerfiles/Dockerfile.backend.tests
     environment:
       - ASPNETCORE_ENVIRONMENT=Testing
-      - ConnectionStrings__DefaultConnection=Server=sqlserver-test;Database=RestaurantMenuTestDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver-test;Database=${DB_NAME}_Test;User Id=${DB_USER};Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true;
     depends_on:
       - sqlserver-test
     networks:
       - restaurant-network
     profiles:
       - testing
-
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd
+      - SA_PASSWORD=${MSSQL_SA_PASSWORD}
       - MSSQL_PID=Express
     ports:
       - "1433:1433"
@@ -40,12 +38,11 @@ services:
       - sqlserver_data:/var/opt/mssql
     networks:
       - restaurant-network
-
   sqlserver-test:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd
+      - SA_PASSWORD=${MSSQL_SA_PASSWORD}
       - MSSQL_PID=Express
     ports:
       - "1434:1433"
@@ -55,7 +52,6 @@ services:
       - restaurant-network
     profiles:
       - testing
-
 volumes:
   sqlserver_data:
   sqlserver_test_data:
