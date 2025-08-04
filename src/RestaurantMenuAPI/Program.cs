@@ -221,6 +221,20 @@ public partial class Program {
     {
         if (!context.MenuItems.Any())
         {
+            // Ensure categories exist
+            if (!context.Categories.Any())
+            {
+                var categories = new List<Category>
+                {
+                    new Category { Id = 1, Name = "Appetizers" },
+                    new Category { Id = 2, Name = "Main Courses" },
+                    new Category { Id = 3, Name = "Desserts" },
+                    new Category { Id = 4, Name = "Beverages" }
+                };
+                context.Categories.AddRange(categories);
+                await context.SaveChangesAsync();
+            }
+
             var menuItems = new List<MenuItem>
             {
                 // Appetizers
