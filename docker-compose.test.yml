@@ -3,7 +3,7 @@ services:
   restaurant-api-tests:
     build:
       context: .
-      dockerfile: Dockerfile.tests
+      dockerfile: Dockerfiles/Dockerfile.backend.tests
     environment:
       - ASPNETCORE_ENVIRONMENT=Testing
       - ConnectionStrings__DefaultConnection=Server=sqlserver-test;Database=RestaurantMenuTestDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true

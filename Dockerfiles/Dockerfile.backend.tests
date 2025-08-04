@@ -1,19 +1,20 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0
 
+
 WORKDIR /app
 
-# Copy solution file
-COPY RestaurantMenuAPI.sln ./
+# Copy solution file (up one level from Dockerfiles)
+COPY ../RestaurantMenuAPI.sln ./
 
 # Copy project files and restore dependencies
-COPY src/RestaurantMenuAPI/RestaurantMenuAPI.csproj ./src/RestaurantMenuAPI/
-COPY tests/RestaurantMenuAPI.Tests/RestaurantMenuAPI.Tests.csproj ./tests/RestaurantMenuAPI.Tests/
+COPY ../src/RestaurantMenuAPI/RestaurantMenuAPI.csproj src/RestaurantMenuAPI/
+COPY ../tests/RestaurantMenuAPI.Tests/RestaurantMenuAPI.Tests.csproj tests/RestaurantMenuAPI.Tests/
 
 RUN dotnet restore
 
 # Copy the rest of the source code
-COPY src/ ./src/
-COPY tests/ ./tests/
+COPY ../src/ src/
+COPY ../tests/ tests/
 
 # Build the projects in Release configuration
 RUN dotnet build --configuration Release --no-restore
