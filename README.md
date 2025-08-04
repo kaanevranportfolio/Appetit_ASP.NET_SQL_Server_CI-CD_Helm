@@ -185,14 +185,18 @@ docker exec <test-container-id> dotnet test tests/RestaurantMenuAPI.Tests/Restau
 
 The test suite validates **ALL** core functionality:
 
-| Feature Category | Tests Included | Status |
-|-----------------|----------------|--------|
-| **Environment** | Docker Runtime, .NET SDK | ✅ 1 test |
-| **Data Handling** | JSON Serialization/Deserialization | ✅ 1 test |
-| **Business Logic** | Validation Rules, Calculations | ✅ 2 tests |
-| **Security** | Authentication, Configuration | ✅ 2 tests |
+| Category                   | Test Methods                                                                                 | Count |
+|----------------------------|--------------------------------------------------------------------------------------------|-------|
+| **Basic**                  | Simple_Math_Test_Should_Pass, String_Test_Should_Pass                                        | 2     |
+| **Data Seeding**           | Database_Should_BeSeeded_WithRoles, Database_Should_BeSeeded_WithAdminUser, Database_Should_BeSeeded_WithMenuItems, Seeded_MenuItems_Should_HaveCorrectData | 4     |
+| **Database**               | Database_Context_Should_BeConfigured, Database_Should_BeAccessible, Database_Should_HaveCorrectTables | 3     |
+| **Identity**               | Identity_Services_Should_BeRegistered, Password_Policy_Should_BeConfigured, User_Options_Should_BeConfigured | 3     |
+| **API Startup**            | Api_Should_StartSuccessfully, Api_Should_HandleInvalidRoutes, Api_Should_ReturnCorrectContentType | 3     |
+| **Swagger Configuration**  | Swagger_Json_Should_BeAccessible, Swagger_Should_ContainApiInformation, Swagger_Should_HaveBearerSecurity | 3     |
+| **JWT Configuration**      | JWT_Configuration_Should_BeValid, JWT_Bearer_Options_Should_BeConfigured                     | 2     |
+| **CORS Configuration**     | CORS_Should_BeConfigured, CORS_Preflight_Should_BeHandled                                    | 2     |
 
-**Total: 6 comprehensive tests covering all major components**
+**Total: 22 tests covering all major components**
 
 ### Live API Demonstration
 
