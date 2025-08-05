@@ -84,9 +84,23 @@ jobs:
           --set image.repository=$REGISTRY/$PROJECT_ID/$REPOSITORY/$IMAGE \
           --set image.tag=${{ github.sha }}
 
+    - name: Debug deployment status
+      run: |
+        echo "🔍 Checking deployment status..."
+        kubectl get deployments
+        kubectl get pods -l app.kubernetes.io/name=restaurantmenuapi
+        kubectl describe deployment restaurantmenuapi
+        echo ""
+        echo "🔍 Checking pod details..."
+        kubectl describe pods -l app.kubernetes.io/name=restaurantmenuapi
+        echo ""
+        echo "🔍 Checking pod logs..."
+        kubectl logs -l app.kubernetes.io/name=restaurantmenuapi --tail=50 || echo "No logs available yet"
+
     - name: Wait for deployment to be ready
       run: |
-        kubectl wait --for=condition=available --timeout=300s deployment/restaurantmenuapi
+        echo "⏳ Waiting for deployment to be ready (extended timeout)..."
+        kubectl wait --for=condition=available --timeout=600s deployment/restaurantmenuapi
         echo "✅ Deployment is ready!"
 
     - name: Wait for LoadBalancer IP
@@ -106,6 +120,17 @@ jobs:
           echo "❌ Failed to get external IP after 5 minutes"
           exit 1
         fi
+
+    - name: Display access URLs
+      run: |
+        echo "🎯 Your Restaurant API is now live!"
+        echo ""
+        echo "📋 Swagger UI: http://$EXTERNAL_IP"
+        echo "🔗 Health Check: http://$EXTERNAL_IP/health"
+        echo "🍽️ Menu API: http://$EXTERNAL_IP/api/menu"
+        echo "📅 Reservations API: http://$EXTERNAL_IP/api/reservations"
+        echo ""
+        echo "🌐 You can visit these URLs in your browser!"
 
     - name: Install load testing tool
       run: |
