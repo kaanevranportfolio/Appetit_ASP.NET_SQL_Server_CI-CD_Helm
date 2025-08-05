@@ -121,6 +121,10 @@ jobs:
           --set image.tag=${{ github.sha }} \
           -f ./helm/restaurantmenuapi/values.secret.yaml
 
+    - name: Delete existing SQL Server PVC (if exists)
+      run: |
+        kubectl delete pvc sqlserver-pvc --ignore-not-found
+
     - name: Deploy SQL Server with Helm
       run: |
         helm upgrade --install sqlserver ./helm/sqlserver \
