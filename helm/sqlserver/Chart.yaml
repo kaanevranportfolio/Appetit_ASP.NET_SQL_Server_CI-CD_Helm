@@ -1,0 +1,4 @@
+apiVersion: v2
+name: sqlserver
+version: 0.1.0
+description: SQL Server Helm chart for GKE deployment

@@ -1,3 +1,7 @@
+# Helm secret values
+helm/restaurantmenuapi/values.secret.yaml
+# Helm secret values
+values.secret.yaml
 # .NET Core
 bin/
 obj/
@@ -372,3 +376,4 @@ appsettings.Staging.json
 secrets.json
 
 
+helm/sqlserver/values.secret.yaml
