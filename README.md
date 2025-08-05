@@ -2,31 +2,62 @@
 
 A professional ASP.NET Core Web API for restaurant menu management with JWT authentication and SQL Server database.
 
-## Project Structure
+
+## Project Structure ([detailed view](docs/PROJECT_STRUCTURE.md))
 
 ```
-RestaurantMenuAPI/
+Appetit_ASP.NET_SQL_Server/
 ├── src/
-│   └── RestaurantMenuAPI/           # Main API project
-│       ├── Controllers/             # API controllers
-│       ├── Data/                    # Database context and configurations
-│       ├── DTOs/                    # Data Transfer Objects
-│       ├── Models/                  # Domain models
-│       ├── Services/                # Business logic services
-│       ├── Program.cs               # Application entry point
-│       └── RestaurantMenuAPI.csproj # Main project file
+│   └── RestaurantMenuAPI/
+│       ├── Controllers/         # API controllers
+│       ├── Data/                # EF Core DbContext, migrations
+│       ├── DTOs/                # Data Transfer Objects
+│       ├── Models/              # Entity models
+│       ├── Services/            # Business logic
+│       ├── Program.cs           # App entry point
+│       └── appsettings.json     # Config
 ├── tests/
-│   └── RestaurantMenuAPI.Tests/     # Test project
-│       ├── Integration/             # Integration tests
-│       ├── Unit/                    # Unit tests
-│       └── RestaurantMenuAPI.Tests.csproj # Test project file
-├── docker-compose.yml               # Development environment
-├── docker-compose.test.yml          # Test environment
-├── Dockerfile                       # Production Docker image
-├── Dockerfile.tests                 # Test Docker image
-├── RestaurantMenuAPI.sln            # Solution file
-└── run-tests.sh                     # Test execution script
+│   └── RestaurantMenuAPI.Tests/ # xUnit test project
+├── Dockerfiles/                 # Dockerfile.backend, Dockerfile.backend.tests
+├── docker-compose.yml           # Local dev
+├── docker-compose.test.yml      # Local/test
+├── helm/                        # Helm charts for K8s
+├── .github/workflows/           # GitHub Actions CI/CD
+├── docs/                        # Project docs (see below)
+├── README.md
+└── ...
 ```
+
+### 📚 Documentation
+- [Project Structure](docs/PROJECT_STRUCTURE.md)
+- [Restructure Details](docs/RESTRUCTURE_COMPLETE.md)
+- [HPA Load Testing](docs/HPA_LOAD_TESTING.md)
+- [GCP Service Account Setup](docs/GCP_SERVICE_ACCOUNT_SETUP.md)
+## CI/CD & Deployment
+
+This project uses a robust GitHub Actions workflow to build, test, and deploy the API and SQL Server to Google Kubernetes Engine (GKE) using Helm. See the workflow in `.github/workflows/deploy.yml`.
+
+**Key Features:**
+- Automated Docker build and push to Google Artifact Registry
+- Secure secret management via GitHub Secrets and Helm
+- Helm-based deployment for both API and SQL Server
+- Waits for SQL Server readiness before deploying API
+- Health checks and HPA (Horizontal Pod Autoscaler) integration
+- Load testing and scaling verification
+
+**Challenges & Solutions:**
+- **YAML/Helm syntax:** Fixed indentation, quoting, and linter issues for error-free deployment.
+- **Secret management:** Ensured all sensitive values are injected via secrets, not hardcoded.
+- **Environment variable propagation:** .NET does not expand `${VAR}` in `appsettings.json`, so connection strings are built at runtime from env vars in `Program.cs`.
+- **Pod readiness:** Added `/health` endpoint and tuned liveness/readiness probes for reliable startup.
+- **Password consistency:** Unified secret names for DB credentials across API and SQL Server.
+- **HPA testing:** Automated load tests to verify autoscaling (see [HPA Load Testing](docs/HPA_LOAD_TESTING.md)).
+
+**See also:**
+- [GCP Service Account Setup](docs/GCP_SERVICE_ACCOUNT_SETUP.md)
+- [HPA Load Testing](docs/HPA_LOAD_TESTING.md)
+- [Restructure Details](docs/RESTRUCTURE_COMPLETE.md)
+
 
 ## 📋 Prerequisites
 
@@ -137,15 +168,15 @@ docker exec <test-container-id> dotnet test tests/RestaurantMenuAPI.Tests/Restau
    ✅ Database_Should_BeSeeded_WithMenuItems
    ✅ Seeded_MenuItems_Should_HaveCorrectData
 
-🔹 Database Tests
-   ✅ Database_Context_Should_BeConfigured
-   ✅ Database_Should_BeAccessible
-   ✅ Database_Should_HaveCorrectTables
-
 🔹 Identity Tests
    ✅ Identity_Services_Should_BeRegistered
    ✅ Password_Policy_Should_BeConfigured
    ✅ User_Options_Should_BeConfigured
+
+🔹 Database Tests
+   ✅ Database_Context_Should_BeConfigured
+   ✅ Database_Should_BeAccessible
+   ✅ Database_Should_HaveCorrectTables
 
 🔹 API Startup Tests
    ✅ Api_Should_StartSuccessfully
@@ -413,4 +444,5 @@ For support and questions:
 
 ---
 
-**Built with ❤️ using ASP.NET Core, Docker, and modern development practices**
+---
+**Built with ❤️ using ASP.NET Core, Docker, Kubernetes, and modern DevOps practices**
