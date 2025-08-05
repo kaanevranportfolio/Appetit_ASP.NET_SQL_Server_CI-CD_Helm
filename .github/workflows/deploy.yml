@@ -92,9 +92,15 @@ jobs:
         echo "  secretKey: \"${{ secrets.JWT_SECRET_KEY }}\"" >> ./helm/restaurantmenuapi/values.secret.yaml
         echo "  issuer: \"${{ secrets.JWT_ISSUER }}\"" >> ./helm/restaurantmenuapi/values.secret.yaml
         echo "  audience: \"${{ secrets.JWT_AUDIENCE }}\"" >> ./helm/restaurantmenuapi/values.secret.yaml
-        echo "  expiryMinutes: ${{ secrets.JWT_EXPIRY_MINUTES }}" >> ./helm/restaurantmenuapi/values.secret.yaml
+        echo "  expiryMinutes: \"${{ secrets.JWT_EXPIRY_MINUTES }}\"" >> ./helm/restaurantmenuapi/values.secret.yaml
         echo "# Add other sensitive values as needed" >> ./helm/restaurantmenuapi/values.secret.yaml
       shell: bash
+
+    - name: Log generated Restaurant API secret YAML
+      run: |
+        echo "--- GENERATED ./helm/restaurantmenuapi/values.secret.yaml ---"
+        cat ./helm/restaurantmenuapi/values.secret.yaml
+        echo "--- END OF FILE ---"
 
     # VS Code YAML linter will show errors for the heredoc block below, but this is expected and safe to ignore.
     # The content is written to a file, not parsed as workflow YAML.
