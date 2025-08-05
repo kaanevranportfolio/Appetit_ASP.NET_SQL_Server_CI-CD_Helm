@@ -3,6 +3,7 @@ name: Test, Build, Push, and Deploy to GKE
 on:
   push:
     branches: [ master ]
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
   test-build-deploy:
