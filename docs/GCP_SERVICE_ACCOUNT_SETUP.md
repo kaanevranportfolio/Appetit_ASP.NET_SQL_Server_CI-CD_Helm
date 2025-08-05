@@ -15,6 +15,9 @@ Your GCP service account needs the following IAM roles:
 ### For Compute Engine (underlying GKE infrastructure):
 - `roles/compute.admin` - To create compute resources for GKE nodes
 
+### For API Management:
+- `roles/serviceusage.serviceUsageAdmin` - To enable/disable APIs
+
 ## Steps to Create Service Account
 
 1. **Create Service Account:**
@@ -40,6 +43,11 @@ Your GCP service account needs the following IAM roles:
    gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
      --member="serviceAccount:github-actions-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
      --role="roles/compute.admin"
+
+   # API management permissions (to enable APIs)
+   gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+     --member="serviceAccount:github-actions-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+     --role="roles/serviceusage.serviceUsageAdmin"
    ```
 
 3. **Create and Download Service Account Key:**
