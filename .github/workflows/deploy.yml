@@ -1,0 +1,73 @@
+name: Test, Build, Push, and Deploy to GKE
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  test-build-deploy:
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY_REGION: ${{ secrets.GKE_ZONE }}
+      REGISTRY: ${{ secrets.GKE_ZONE }}-docker.pkg.dev
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      REPOSITORY: restaurant-repo
+      IMAGE: restaurantmenuapi
+      CLUSTER_NAME: restaurant-cluster
+      GKE_ZONE: ${{ secrets.GKE_ZONE }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run tests using Docker
+      env:
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_USER: ${{ secrets.DB_USER }}
+        MSSQL_SA_PASSWORD: ${{ secrets.MSSQL_SA_PASSWORD }}
+      run: |
+        chmod +x ./run-tests.sh
+        ./run-tests.sh
+
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+    - name: Create Artifact Registry repository
+      run: |
+        gcloud artifacts repositories create $REPOSITORY \
+          --repository-format=docker \
+          --location=$REGISTRY_REGION \
+          --description="Restaurant Menu API Docker repository" || true
+
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker $REGISTRY
+
+    - name: Build Docker image
+      run: |
+        docker build -f Dockerfiles/Dockerfile.backend -t $REGISTRY/$PROJECT_ID/$REPOSITORY/$IMAGE:${{ github.sha }} .
+
+    - name: Push Docker image
+      run: |
+        docker push $REGISTRY/$PROJECT_ID/$REPOSITORY/$IMAGE:${{ github.sha }}
+
+    - name: Create GKE cluster if not exists
+      run: |
+        if ! gcloud container clusters describe $CLUSTER_NAME --zone $GKE_ZONE; then
+          gcloud container clusters create $CLUSTER_NAME --zone $GKE_ZONE --num-nodes=3
+        fi
+
+    - name: Get GKE credentials
+      run: |
+        gcloud container clusters get-credentials $CLUSTER_NAME --zone $GKE_ZONE
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v4
+
+    - name: Deploy with Helm
+      run: |
+        helm upgrade --install restaurantmenuapi ./helm/restaurantmenuapi \
+          --set image.repository=$REGISTRY/$PROJECT_ID/$REPOSITORY/$IMAGE \
+          --set image.tag=${{ github.sha }}

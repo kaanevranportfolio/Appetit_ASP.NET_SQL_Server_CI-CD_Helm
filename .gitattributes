@@ -1,0 +1,31 @@
+# Set default behavior for line endings
+* text=auto
+
+# Force Unix line endings for shell scripts
+*.sh text eol=lf
+
+# Force Unix line endings for Docker and configuration files
+Dockerfile* text eol=lf
+*.dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+docker-compose*.yaml text eol=lf
+
+# Force Unix line endings for Helm charts and Kubernetes manifests
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Force Unix line endings for other Unix-specific files
+*.conf text eol=lf
+*.env text eol=lf
+
+# Ensure Windows batch files use CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
