@@ -114,12 +114,6 @@ jobs:
         echo "  # Add other sensitive values as needed" >> ./helm/sqlserver/values.secret.yaml
       shell: bash
 
-    - name: Deploy Restaurant API with Helm
-      run: |
-        helm upgrade --install restaurantmenuapi ./helm/restaurantmenuapi \
-          --set image.repository=$REGISTRY/$PROJECT_ID/$REPOSITORY/$IMAGE \
-          --set image.tag=${{ github.sha }} \
-          -f ./helm/restaurantmenuapi/values.secret.yaml
 
     - name: Delete existing SQL Server PVC (if exists)
       run: |
@@ -129,6 +123,19 @@ jobs:
       run: |
         helm upgrade --install sqlserver ./helm/sqlserver \
           -f ./helm/sqlserver/values.secret.yaml
+
+    - name: Wait for SQL Server pod to be ready
+      run: |
+        echo "⏳ Waiting for SQL Server pod to be ready..."
+        kubectl wait --for=condition=ready --timeout=300s pod -l app=sqlserver
+        echo "✅ SQL Server pod is ready!"
+
+    - name: Deploy Restaurant API with Helm
+      run: |
+        helm upgrade --install restaurantmenuapi ./helm/restaurantmenuapi \
+          --set image.repository=$REGISTRY/$PROJECT_ID/$REPOSITORY/$IMAGE \
+          --set image.tag=${{ github.sha }} \
+          -f ./helm/restaurantmenuapi/values.secret.yaml
 
     - name: Debug deployment status (always runs)
       if: always()
