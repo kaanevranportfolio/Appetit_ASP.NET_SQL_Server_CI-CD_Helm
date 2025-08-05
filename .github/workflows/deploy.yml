@@ -108,7 +108,7 @@ jobs:
     - name: Generate sensitive values.secret.yaml for SQL Server
       run: |
         echo "mssql:" > ./helm/sqlserver/values.secret.yaml
-        echo "  saPassword: \"${{ secrets.MSSQL_SA_PASSWORD }}\"" >> ./helm/sqlserver/values.secret.yaml
+        echo "  saPassword: \"${{ secrets.DB_PASSWORD }}\"" >> ./helm/sqlserver/values.secret.yaml
         echo "  dbName: \"${{ secrets.DB_NAME }}\"" >> ./helm/sqlserver/values.secret.yaml
         echo "  dbUser: \"${{ secrets.DB_USER }}\"" >> ./helm/sqlserver/values.secret.yaml
         echo "  # Add other sensitive values as needed" >> ./helm/sqlserver/values.secret.yaml
