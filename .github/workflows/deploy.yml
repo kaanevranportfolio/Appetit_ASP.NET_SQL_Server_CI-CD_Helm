@@ -115,9 +115,12 @@ jobs:
       shell: bash
 
 
-    - name: Delete existing SQL Server PVC (if exists)
-      run: |
-        kubectl delete pvc sqlserver-pvc --ignore-not-found
+    # - name: Delete existing SQL Server PVC (if exists)
+    #   WARNING: Deleting the SQL Server PVC will erase all database data.
+    #   This is useful for test/dev/CI environments when you want a clean database,
+    #   but should NOT be used in production if you want to retain data.
+    #   run: |
+    #     kubectl delete pvc sqlserver-pvc --ignore-not-found
 
     - name: Deploy SQL Server with Helm
       run: |
