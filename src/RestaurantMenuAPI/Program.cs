@@ -24,12 +24,33 @@ builder.Host.UseSerilog();
 // Add services to the container
 builder.Services.AddControllers();
 
-// Build connection string from environment variables
-string dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
-string dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "RestaurantDb";
-string dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "sa";
-string dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "Your_password123";
-var connectionString = $"Server={dbHost},1433;Database={dbName};User Id={dbUser};Password={dbPassword};TrustServerCertificate=true;";
+//
+// Connection string logic explanation:
+// Priority order for connection string:
+// 1. Use connection string from appsettings.json if available (local development)
+// 2. Fall back to environment variables if available (Docker/Cloud/Kubernetes)
+// 3. Use default values as last resort
+//
+string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    // If no connection string in appsettings.json, build from environment variables
+    // This handles both Docker Compose and Kubernetes/Helm scenarios
+    string dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "sqlserver";
+    string dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "AppetitDb";
+    string dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "sa";
+    string? dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+    
+    if (string.IsNullOrEmpty(dbPassword))
+    {
+        throw new InvalidOperationException(
+            "Database password not found. Please provide it through the DB_PASSWORD environment variable " +
+            "or in the connection string in appsettings.json");
+    }
+    
+    connectionString = $"Server={dbHost};Database={dbName};User Id={dbUser};Password={dbPassword};TrustServerCertificate=true;";
+}
 
 // Database Configuration
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
