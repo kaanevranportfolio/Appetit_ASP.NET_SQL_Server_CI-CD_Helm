@@ -24,9 +24,16 @@ builder.Host.UseSerilog();
 // Add services to the container
 builder.Services.AddControllers();
 
+// Build connection string from environment variables
+string dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
+string dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "RestaurantDb";
+string dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "sa";
+string dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "Your_password123";
+var connectionString = $"Server={dbHost},1433;Database={dbName};User Id={dbUser};Password={dbPassword};TrustServerCertificate=true;";
+
 // Database Configuration
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString));
 
 // Identity Configuration
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
