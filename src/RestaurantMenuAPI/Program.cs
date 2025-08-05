@@ -26,17 +26,16 @@ builder.Services.AddControllers();
 
 //
 // Connection string logic explanation:
-// Priority order for connection string:
-// 1. Use connection string from appsettings.json if available (local development)
-// 2. Fall back to environment variables if available (Docker/Cloud/Kubernetes)
-// 3. Use default values as last resort
+// Two modes of operation:
+// 1. Container/Production mode: Uses environment variables (for Docker/Cloud/K8s)
+// 2. Development mode: Uses appsettings.Development.json (for local development)
 //
-string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+string? connectionString;
 
-if (string.IsNullOrEmpty(connectionString))
+// Check if we're running in a container (Docker/K8s) or production environment
+if (!builder.Environment.IsDevelopment() || Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
 {
-    // If no connection string in appsettings.json, build from environment variables
-    // This handles both Docker Compose and Kubernetes/Helm scenarios
+    // Container/Production mode - build connection string from environment variables
     string dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "sqlserver";
     string dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "AppetitDb";
     string dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "sa";
@@ -46,10 +45,22 @@ if (string.IsNullOrEmpty(connectionString))
     {
         throw new InvalidOperationException(
             "Database password not found. Please provide it through the DB_PASSWORD environment variable " +
-            "or in the connection string in appsettings.json");
+            "when running in container or production mode.");
     }
     
     connectionString = $"Server={dbHost};Database={dbName};User Id={dbUser};Password={dbPassword};TrustServerCertificate=true;";
+}
+else
+{
+    // Development mode - use connection string from appsettings.Development.json
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        throw new InvalidOperationException(
+            "Connection string not found in appsettings.Development.json. " +
+            "Please configure your local development database connection string.");
+    }
 }
 
 // Database Configuration
