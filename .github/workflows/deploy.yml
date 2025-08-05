@@ -8,13 +8,13 @@ jobs:
   test-build-deploy:
     runs-on: ubuntu-latest
     env:
-      REGISTRY_REGION: ${{ secrets.GKE_ZONE }}
-      REGISTRY: ${{ secrets.GKE_ZONE }}-docker.pkg.dev
+      GKE_ZONE: ${{ secrets.GKE_ZONE }}
+      REGISTRY_REGION: ${{ secrets.REGISTRY_REGION }}
+      REGISTRY: ${{ secrets.REGISTRY_REGION }}-docker.pkg.dev
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       REPOSITORY: restaurant-repo
       IMAGE: restaurantmenuapi
       CLUSTER_NAME: restaurant-cluster
-      GKE_ZONE: ${{ secrets.GKE_ZONE }}
 
     steps:
     - name: Checkout code

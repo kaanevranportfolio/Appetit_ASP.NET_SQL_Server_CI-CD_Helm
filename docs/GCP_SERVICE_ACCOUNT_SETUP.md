@@ -52,6 +52,7 @@ Your GCP service account needs the following IAM roles:
    - `GCP_SA_KEY`: Copy the entire content of `github-actions-key.json` (including {})
    - `GCP_PROJECT_ID`: Your GCP project ID
    - `GKE_ZONE`: The zone where you want to create your GKE cluster (e.g., `us-central1-a`)
+   - `REGISTRY_REGION`: The region for Artifact Registry (e.g., `us-central1` - without zone suffix)
 
 ## Security Notes
 
@@ -67,3 +68,12 @@ This setup uses Google Artifact Registry (recommended) instead of the legacy Con
 - Support for multiple artifact types
 - Regional and multi-regional repositories
 - Integration with Cloud Build and other GCP services
+
+## 🗺️ **GCP Zones vs Regions:**
+- **GKE uses zones** (with `-a`, `-b` suffix): `us-central1-a`, `europe-west1-a`
+- **Artifact Registry uses regions** (without zone suffix): `us-central1`, `europe-west1`
+
+**Common Examples:**
+- US Central: Zone `us-central1-a` → Region `us-central1`
+- Europe West: Zone `europe-west1-a` → Region `europe-west1`
+- Asia Southeast: Zone `asia-southeast1-a` → Region `asia-southeast1`
