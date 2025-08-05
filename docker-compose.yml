@@ -13,19 +13,22 @@ services:
       - sqlserver
     networks:
       - restaurant-network
-  restaurant-api-tests:
-    build:
-      context: .
-      dockerfile: Dockerfiles/Dockerfile.backend.tests
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Testing
-      - ConnectionStrings__DefaultConnection=Server=sqlserver-test;Database=${DB_NAME}_Test;User Id=${DB_USER};Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true;
-    depends_on:
-      - sqlserver-test
-    networks:
-      - restaurant-network
-    profiles:
-      - testing
+
+  # Testing services moved to separate docker-compose.test.yml for CI/CD
+  # restaurant-api-tests:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfiles/Dockerfile.backend.tests
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Testing
+  #     - ConnectionStrings__DefaultConnection=Server=sqlserver-test;Database=${DB_NAME}_Test;User Id=${DB_USER};Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true;
+  #   depends_on:
+  #     - sqlserver-test
+  #   networks:
+  #     - restaurant-network
+  #   profiles:
+  #     - testing
+
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
@@ -38,23 +41,27 @@ services:
       - sqlserver_data:/var/opt/mssql
     networks:
       - restaurant-network
-  sqlserver-test:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=${MSSQL_SA_PASSWORD}
-      - MSSQL_PID=Express
-    ports:
-      - "1434:1433"
-    volumes:
-      - sqlserver_test_data:/var/opt/mssql
-    networks:
-      - restaurant-network
-    profiles:
-      - testing
+
+  # Testing database moved to separate docker-compose.test.yml for CI/CD
+  # sqlserver-test:
+  #   image: mcr.microsoft.com/mssql/server:2022-latest
+  #   environment:
+  #     - ACCEPT_EULA=Y
+  #     - SA_PASSWORD=${MSSQL_SA_PASSWORD}
+  #     - MSSQL_PID=Express
+  #   ports:
+  #     - "1434:1433"
+  #   volumes:
+  #     - sqlserver_test_data:/var/opt/mssql
+  #   networks:
+  #     - restaurant-network
+  #   profiles:
+  #     - testing
+
 volumes:
   sqlserver_data:
-  sqlserver_test_data:
+  # Testing volume moved to separate docker-compose.test.yml for CI/CD
+  # sqlserver_test_data:
 
 networks:
   restaurant-network:

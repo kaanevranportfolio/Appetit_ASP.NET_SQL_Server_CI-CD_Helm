@@ -84,7 +84,8 @@ jobs:
           --set image.repository=$REGISTRY/$PROJECT_ID/$REPOSITORY/$IMAGE \
           --set image.tag=${{ github.sha }}
 
-    - name: Debug deployment status
+    - name: Debug deployment status (always runs)
+      if: always()
       run: |
         echo "🔍 Checking deployment status..."
         kubectl get deployments
@@ -94,8 +95,14 @@ jobs:
         echo "🔍 Checking pod details..."
         kubectl describe pods -l app.kubernetes.io/name=restaurantmenuapi
         echo ""
-        echo "🔍 Checking pod logs..."
+        echo "🔍 Checking pod logs (last 50 lines)..."
         kubectl logs -l app.kubernetes.io/name=restaurantmenuapi --tail=50 || echo "No logs available yet"
+        echo ""
+        echo "🔍 Checking previous pod logs (for crash loops)..."
+        for pod in $(kubectl get pods -l app.kubernetes.io/name=restaurantmenuapi -o jsonpath='{.items[*].metadata.name}'); do
+          echo "\n--- Previous logs for $pod ---"
+          kubectl logs $pod --previous || echo "No previous logs for $pod"
+        done
 
     - name: Wait for deployment to be ready
       run: |
