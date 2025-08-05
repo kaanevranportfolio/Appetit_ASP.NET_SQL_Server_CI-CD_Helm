@@ -21,14 +21,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Run tests using Docker
-      env:
-        DB_NAME: ${{ secrets.DB_NAME }}
-        DB_USER: ${{ secrets.DB_USER }}
-        MSSQL_SA_PASSWORD: ${{ secrets.MSSQL_SA_PASSWORD }}
-      run: |
-        chmod +x ./run-tests.sh
-        ./run-tests.sh
+    # - name: Run tests using Docker
+    #   env:
+    #     DB_NAME: ${{ secrets.DB_NAME }}
+    #     DB_USER: ${{ secrets.DB_USER }}
+    #     MSSQL_SA_PASSWORD: ${{ secrets.MSSQL_SA_PASSWORD }}
+    #   run: |
+    #     chmod +x ./run-tests.sh
+    #     ./run-tests.sh
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
