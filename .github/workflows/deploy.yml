@@ -78,11 +78,18 @@ jobs:
     - name: Set up Helm
       uses: azure/setup-helm@v4
 
-    - name: Deploy with Helm
+    - name: Deploy Restaurant API with Helm
       run: |
         helm upgrade --install restaurantmenuapi ./helm/restaurantmenuapi \
           --set image.repository=$REGISTRY/$PROJECT_ID/$REPOSITORY/$IMAGE \
-          --set image.tag=${{ github.sha }}
+          --set image.tag=${{ github.sha }} \
+          -f ./helm/restaurantmenuapi/values.secret.yaml
+
+
+    - name: Deploy SQL Server with Helm
+      run: |
+        helm upgrade --install sqlserver ./helm/sqlserver \
+          -f ./helm/sqlserver/values.secret.yaml
 
     - name: Debug deployment status (always runs)
       if: always()
