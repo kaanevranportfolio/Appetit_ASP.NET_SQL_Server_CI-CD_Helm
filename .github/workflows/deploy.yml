@@ -81,33 +81,31 @@ jobs:
 
     # VS Code YAML linter will show errors for the heredoc block below, but this is expected and safe to ignore.
     # The content is written to a file, not parsed as workflow YAML.
+
     - name: Generate sensitive values.secret.yaml for Restaurant API
       run: |
-        cat <<EOF > ./helm/restaurantmenuapi/values.secret.yaml
-db:
-  user: "${{ secrets.DB_USER }}"
-  password: "${{ secrets.DB_PASSWORD }}"
-  name: "${{ secrets.DB_NAME }}"
-jwt:
-  secretKey: "${{ secrets.JWT_SECRET_KEY }}"
-  issuer: "${{ secrets.JWT_ISSUER }}"
-  audience: "${{ secrets.JWT_AUDIENCE }}"
-  expiryMinutes: ${{ secrets.JWT_EXPIRY_MINUTES }}
-# Add other sensitive values as needed
-EOF
+        echo "db:" > ./helm/restaurantmenuapi/values.secret.yaml
+        echo "  user: \"${{ secrets.DB_USER }}\"" >> ./helm/restaurantmenuapi/values.secret.yaml
+        echo "  password: \"${{ secrets.DB_PASSWORD }}\"" >> ./helm/restaurantmenuapi/values.secret.yaml
+        echo "  name: \"${{ secrets.DB_NAME }}\"" >> ./helm/restaurantmenuapi/values.secret.yaml
+        echo "jwt:" >> ./helm/restaurantmenuapi/values.secret.yaml
+        echo "  secretKey: \"${{ secrets.JWT_SECRET_KEY }}\"" >> ./helm/restaurantmenuapi/values.secret.yaml
+        echo "  issuer: \"${{ secrets.JWT_ISSUER }}\"" >> ./helm/restaurantmenuapi/values.secret.yaml
+        echo "  audience: \"${{ secrets.JWT_AUDIENCE }}\"" >> ./helm/restaurantmenuapi/values.secret.yaml
+        echo "  expiryMinutes: ${{ secrets.JWT_EXPIRY_MINUTES }}" >> ./helm/restaurantmenuapi/values.secret.yaml
+        echo "# Add other sensitive values as needed" >> ./helm/restaurantmenuapi/values.secret.yaml
       shell: bash
 
     # VS Code YAML linter will show errors for the heredoc block below, but this is expected and safe to ignore.
     # The content is written to a file, not parsed as workflow YAML.
+
     - name: Generate sensitive values.secret.yaml for SQL Server
       run: |
-        cat <<EOF > ./helm/sqlserver/values.secret.yaml
-mssql:
-  saPassword: "${{ secrets.MSSQL_SA_PASSWORD }}"
-  dbName: "${{ secrets.DB_NAME }}"
-  dbUser: "${{ secrets.DB_USER }}"
-  # Add other sensitive values as needed
-EOF
+        echo "mssql:" > ./helm/sqlserver/values.secret.yaml
+        echo "  saPassword: \"${{ secrets.MSSQL_SA_PASSWORD }}\"" >> ./helm/sqlserver/values.secret.yaml
+        echo "  dbName: \"${{ secrets.DB_NAME }}\"" >> ./helm/sqlserver/values.secret.yaml
+        echo "  dbUser: \"${{ secrets.DB_USER }}\"" >> ./helm/sqlserver/values.secret.yaml
+        echo "  # Add other sensitive values as needed" >> ./helm/sqlserver/values.secret.yaml
       shell: bash
 
     - name: Deploy Restaurant API with Helm
