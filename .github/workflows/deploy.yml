@@ -109,14 +109,6 @@ mssql:
   # Add other sensitive values as needed
 EOF
       shell: bash
-    - name: Generate sensitive values.secret.yaml for SQL Server
-      run: |
-        cat <<EOF > ./helm/sqlserver/values.secret.yaml
-mssql:
-  saPassword: "${{ secrets.MSSQL_SA_PASSWORD }}"
-  dbName: "${{ secrets.DB_NAME }}"
-  dbUser: "${{ secrets.DB_USER }}"
-  # Add other sensitive values as needed
 
     - name: Deploy Restaurant API with Helm
       run: |
