@@ -58,6 +58,7 @@ This project uses a robust GitHub Actions workflow to build, test, and deploy th
 - [HPA Load Testing](docs/HPA_LOAD_TESTING.md)
 - [Restructure Details](docs/RESTRUCTURE_COMPLETE.md)
 
+![Test Results](pngs/hpa.png)
 
 ## 📋 Prerequisites
 
