@@ -79,32 +79,44 @@ jobs:
     - name: Set up Helm
       uses: azure/setup-helm@v4
 
+    # VS Code YAML linter will show errors for the heredoc block below, but this is expected and safe to ignore.
+    # The content is written to a file, not parsed as workflow YAML.
     - name: Generate sensitive values.secret.yaml for Restaurant API
       run: |
         cat <<EOF > ./helm/restaurantmenuapi/values.secret.yaml
-        db:
-          user: "${{ secrets.DB_USER }}"
-          password: "${{ secrets.DB_PASSWORD }}"
-          name: "${{ secrets.DB_NAME }}"
-        jwt:
-          secretKey: "${{ secrets.JWT_SECRET_KEY }}"
-          issuer: "${{ secrets.JWT_ISSUER }}"
-          audience: "${{ secrets.JWT_AUDIENCE }}"
-          expiryMinutes: ${{ secrets.JWT_EXPIRY_MINUTES }}
-        # Add other sensitive values as needed
-        EOF
+db:
+  user: "${{ secrets.DB_USER }}"
+  password: "${{ secrets.DB_PASSWORD }}"
+  name: "${{ secrets.DB_NAME }}"
+jwt:
+  secretKey: "${{ secrets.JWT_SECRET_KEY }}"
+  issuer: "${{ secrets.JWT_ISSUER }}"
+  audience: "${{ secrets.JWT_AUDIENCE }}"
+  expiryMinutes: ${{ secrets.JWT_EXPIRY_MINUTES }}
+# Add other sensitive values as needed
+EOF
       shell: bash
 
-
+    # VS Code YAML linter will show errors for the heredoc block below, but this is expected and safe to ignore.
+    # The content is written to a file, not parsed as workflow YAML.
     - name: Generate sensitive values.secret.yaml for SQL Server
       run: |
         cat <<EOF > ./helm/sqlserver/values.secret.yaml
-        saPassword: "${{ secrets.MSSQL_SA_PASSWORD }}"
-        dbName: "${{ secrets.DB_NAME }}"
-        dbUser: "${{ secrets.DB_USER }}"
-        # Add other sensitive values as needed
-        EOF
+mssql:
+  saPassword: "${{ secrets.MSSQL_SA_PASSWORD }}"
+  dbName: "${{ secrets.DB_NAME }}"
+  dbUser: "${{ secrets.DB_USER }}"
+  # Add other sensitive values as needed
+EOF
       shell: bash
+    - name: Generate sensitive values.secret.yaml for SQL Server
+      run: |
+        cat <<EOF > ./helm/sqlserver/values.secret.yaml
+mssql:
+  saPassword: "${{ secrets.MSSQL_SA_PASSWORD }}"
+  dbName: "${{ secrets.DB_NAME }}"
+  dbUser: "${{ secrets.DB_USER }}"
+  # Add other sensitive values as needed
 
     - name: Deploy Restaurant API with Helm
       run: |
