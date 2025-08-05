@@ -71,6 +71,10 @@ jobs:
       run: |
         gcloud container clusters get-credentials $CLUSTER_NAME --zone $GKE_ZONE
 
+    - name: Install GKE auth plugin
+      run: |
+        gcloud components install gke-gcloud-auth-plugin --quiet
+
     - name: Set up Helm
       uses: azure/setup-helm@v4
 
@@ -79,3 +83,83 @@ jobs:
         helm upgrade --install restaurantmenuapi ./helm/restaurantmenuapi \
           --set image.repository=$REGISTRY/$PROJECT_ID/$REPOSITORY/$IMAGE \
           --set image.tag=${{ github.sha }}
+
+    - name: Wait for deployment to be ready
+      run: |
+        kubectl wait --for=condition=available --timeout=300s deployment/restaurantmenuapi
+        echo "✅ Deployment is ready!"
+
+    - name: Wait for LoadBalancer IP
+      run: |
+        echo "⏳ Waiting for LoadBalancer to get external IP..."
+        for i in {1..30}; do
+          EXTERNAL_IP=$(kubectl get service restaurantmenuapi -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
+          if [ ! -z "$EXTERNAL_IP" ]; then
+            echo "✅ External IP: $EXTERNAL_IP"
+            echo "EXTERNAL_IP=$EXTERNAL_IP" >> $GITHUB_ENV
+            break
+          fi
+          echo "⏳ Still waiting for IP... (attempt $i/30)"
+          sleep 10
+        done
+        if [ -z "$EXTERNAL_IP" ]; then
+          echo "❌ Failed to get external IP after 5 minutes"
+          exit 1
+        fi
+
+    - name: Install load testing tool
+      run: |
+        echo "📦 Installing hey load testing tool..."
+        wget -O hey https://hey-release.s3.us-east-2.amazonaws.com/hey_linux_amd64
+        chmod +x hey
+        sudo mv hey /usr/local/bin/
+
+    - name: Check initial HPA and pod status
+      run: |
+        echo "📊 Initial cluster status:"
+        kubectl get hpa
+        kubectl get pods -l app.kubernetes.io/name=restaurantmenuapi
+        echo ""
+
+    - name: Run load test and monitor HPA scaling
+      run: |
+        echo "🔥 Starting load test against http://$EXTERNAL_IP"
+        echo "Target: CPU > 40%, Memory > 50%"
+        echo ""
+        
+        # Start load test in background
+        hey -z 3m -c 20 -q 10 http://$EXTERNAL_IP/health &
+        LOAD_TEST_PID=$!
+        
+        echo "📊 Monitoring HPA scaling for 3 minutes..."
+        for i in {1..18}; do
+          echo "--- Check $i (every 10s) ---"
+          kubectl get hpa restaurantmenuapi --no-headers | awk '{printf "HPA: %s/%s replicas, CPU: %s, Memory: %s\n", $7, $8, $3, $4}'
+          kubectl get pods -l app.kubernetes.io/name=restaurantmenuapi --no-headers | wc -l | awk '{printf "Pod count: %s\n", $1}'
+          echo ""
+          sleep 10
+        done
+        
+        # Wait for load test to complete
+        wait $LOAD_TEST_PID
+        echo "✅ Load test completed!"
+
+    - name: Monitor scale down behavior
+      run: |
+        echo "📉 Monitoring scale down (waiting 5 minutes)..."
+        for i in {1..30}; do
+          echo "--- Scale down check $i (every 10s) ---"
+          kubectl get hpa restaurantmenuapi --no-headers | awk '{printf "HPA: %s/%s replicas, CPU: %s, Memory: %s\n", $7, $8, $3, $4}'
+          kubectl get pods -l app.kubernetes.io/name=restaurantmenuapi --no-headers | wc -l | awk '{printf "Pod count: %s\n", $1}'
+          echo ""
+          sleep 10
+        done
+
+    - name: Final HPA test results
+      run: |
+        echo "🎯 Final HPA Test Results:"
+        kubectl get hpa restaurantmenuapi
+        kubectl get pods -l app.kubernetes.io/name=restaurantmenuapi
+        kubectl describe hpa restaurantmenuapi
+        echo ""
+        echo "✅ HPA load testing completed successfully!"
