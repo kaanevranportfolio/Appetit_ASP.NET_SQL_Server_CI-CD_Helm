@@ -1,4 +1,6 @@
-env: []
+env:
+  - name: ACCEPT_EULA
+    value: "Y"
 # Custom environment variables for SQL Server container
 replicaCount: 1
 image:
@@ -19,4 +21,3 @@ persistence:
 
 mssql:
   edition: "Developer"
-  acceptEula: "Y"

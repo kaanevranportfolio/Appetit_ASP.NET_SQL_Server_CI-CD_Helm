@@ -22,8 +22,6 @@ spec:
             - containerPort: 1433
           env:
             {{- toYaml .Values.env | nindent 12 }}
-            - name: ACCEPT_EULA
-              value: "{{ .Values.mssql.acceptEula }}"
             - name: SA_PASSWORD
               valueFrom:
                 secretKeyRef:
