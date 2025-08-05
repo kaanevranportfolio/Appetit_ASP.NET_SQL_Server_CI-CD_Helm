@@ -56,3 +56,7 @@ env:
     value: "Production"
   - name: ASPNETCORE_URLS
     value: "http://+:8080"
+
+  # Add DB_HOST for Kubernetes service discovery
+  - name: DB_HOST
+    value: "sqlserver"
