@@ -8,6 +8,10 @@ using RestaurantMenuAPI.Models;
 using RestaurantMenuAPI.Services;
 using Serilog;
 using System.Text;
+using DotNetEnv;
+
+// Load .env file if it exists
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,8 +85,25 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 // JWT Authentication Configuration
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var key = Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]!);
+string secretKey = Environment.GetEnvironmentVariable("JwtSettings__SecretKey") ?? 
+                   Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? 
+                   "TestSecretKey123456789012345678901234567890"; // Fallback for tests
+
+string issuer = Environment.GetEnvironmentVariable("JwtSettings__Issuer") ?? 
+                Environment.GetEnvironmentVariable("JWT_ISSUER") ?? 
+                "TestRestaurantAPI"; // Fallback for tests
+
+string audience = Environment.GetEnvironmentVariable("JwtSettings__Audience") ?? 
+                  Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? 
+                  "TestRestaurantUsers"; // Fallback for tests
+
+if (string.IsNullOrEmpty(secretKey) || secretKey.Length < 32)
+{
+    throw new InvalidOperationException(
+        "JWT SecretKey must be at least 32 characters long. Please set JwtSettings__SecretKey or JWT_SECRET_KEY environment variable.");
+}
+
+var key = Encoding.ASCII.GetBytes(secretKey);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -98,9 +119,9 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
         ValidateIssuer = true,
-        ValidIssuer = jwtSettings["Issuer"],
+        ValidIssuer = issuer,
         ValidateAudience = true,
-        ValidAudience = jwtSettings["Audience"],
+        ValidAudience = audience,
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };

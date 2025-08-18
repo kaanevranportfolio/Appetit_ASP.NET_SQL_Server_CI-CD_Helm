@@ -18,6 +18,16 @@ public abstract class TestBase : IClassFixture<WebApplicationFactory<Program>>, 
 
     protected TestBase(WebApplicationFactory<Program> factory)
     {
+        // Set test environment variables
+        Environment.SetEnvironmentVariable("JwtSettings__SecretKey", "TestSecretKey123456789012345678901234567890");
+        Environment.SetEnvironmentVariable("JwtSettings__Issuer", "TestRestaurantAPI");
+        Environment.SetEnvironmentVariable("JwtSettings__Audience", "TestRestaurantUsers");
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        Environment.SetEnvironmentVariable("DB_PASSWORD", "TestPassword123!");
+        Environment.SetEnvironmentVariable("DB_HOST", "testserver");
+        Environment.SetEnvironmentVariable("DB_NAME", "TestDb");
+        Environment.SetEnvironmentVariable("DB_USER", "testuser");
+
         Factory = factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureAppConfiguration((context, config) =>
@@ -25,9 +35,6 @@ public abstract class TestBase : IClassFixture<WebApplicationFactory<Program>>, 
                 // Override configuration for testing
                 config.AddInMemoryCollection(new[]
                 {
-                    new KeyValuePair<string, string?>("JwtSettings:SecretKey", "TestSecretKey123456789012345678901234567890"),
-                    new KeyValuePair<string, string?>("JwtSettings:Issuer", "TestRestaurantAPI"),
-                    new KeyValuePair<string, string?>("JwtSettings:Audience", "TestRestaurantUsers"),
                     new KeyValuePair<string, string?>("Serilog:MinimumLevel", "Warning")
                 });
             });
