@@ -4,15 +4,15 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 # Set workdir relative to repo root
 WORKDIR /src
 
-# Copy solution file (up one level from Dockerfiles)
-COPY ../RestaurantMenuAPI.sln ./
+# Copy solution file (context is repo root)
+COPY RestaurantMenuAPI.sln ./
 
 # Copy project files
-COPY ../src/RestaurantMenuAPI/RestaurantMenuAPI.csproj src/RestaurantMenuAPI/
+COPY src/RestaurantMenuAPI/RestaurantMenuAPI.csproj src/RestaurantMenuAPI/
 RUN dotnet restore src/RestaurantMenuAPI/RestaurantMenuAPI.csproj
 
 # Copy source code
-COPY ../src/RestaurantMenuAPI/ src/RestaurantMenuAPI/
+COPY src/RestaurantMenuAPI/ src/RestaurantMenuAPI/
 RUN dotnet build src/RestaurantMenuAPI/RestaurantMenuAPI.csproj -c Release -o /app/build
 
 # Publish the application
